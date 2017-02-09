@@ -4,6 +4,7 @@ jQuery(document).ready(function($) {
 
 
 	/************** Toggle *********************/
+	  handleAuthSession();
     // Cache selectors
     var lastId,
         topMenu = $(".menu-first"),
@@ -12,11 +13,11 @@ jQuery(document).ready(function($) {
         menuItems = topMenu.find("a"),
         // Anchors corresponding to menu items
         scrollItems = menuItems.map(function(){
-          
+
           if($(this).hasClass('external')) {
             return;
           }
-            
+
           var item = $($(this).attr("href"));
           if (item.length) { return item; }
         });
@@ -26,7 +27,7 @@ jQuery(document).ready(function($) {
     menuItems.click(function(e){
       var href = $(this).attr("href"),
           offsetTop = href === "#" ? 0 : $(href).offset().top-topMenuHeight+1;
-      $('html, body').stop().animate({ 
+      $('html, body').stop().animate({
           scrollTop: offsetTop
       }, 300);
       e.preventDefault();
@@ -36,7 +37,7 @@ jQuery(document).ready(function($) {
     $(window).scroll(function(){
        // Get container scroll position
        var fromTop = $(this).scrollTop()+topMenuHeight;
-       
+
        // Get id of current scroll item
        var cur = scrollItems.map(function(){
          if ($(this).offset().top < fromTop)
@@ -45,14 +46,14 @@ jQuery(document).ready(function($) {
        // Get the id of the current element
        cur = cur[cur.length-1];
        var id = cur && cur.length ? cur[0].id : "";
-       
+
        if (lastId !== id) {
            lastId = id;
            // Set/remove active class
            menuItems
              .parent().removeClass("active")
              .end().filter("[href=#"+id+"]").parent().addClass("active");
-       }                   
+       }
     });
 
 
@@ -71,7 +72,7 @@ jQuery(document).ready(function($) {
 
     $('.flexslider').flexslider({
       slideshow: true,
-      slideshowSpeed: 3000,  
+      slideshowSpeed: 3000,
       animation: "fade",
       directionNav: false,
     });
@@ -94,3 +95,23 @@ jQuery(document).ready(function($) {
 
 
 });
+
+function handleAuthSession() {
+  var token_cookie = Cookies.get("token");
+
+  if(token_cookie == "NO_TOKEN")
+    Cookies.remove("token");
+  else {
+    $.getJSON( "https://okta-demo-oidc-digitalmarketing-recinto.c9users.io/user", function( data ) {
+      if(data.active) {
+        $("#login").html(data.username);
+      } else {
+        if(data.redirect_url){
+          location.href = data.redirect_url
+        } else {
+          Cookies.remove("token");
+        }
+      }
+    });
+  }
+}
